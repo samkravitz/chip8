@@ -1,6 +1,8 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
+#include <stdio.h>
+
 class chip8 {
 
     unsigned char chip8_fontset[80] =
@@ -24,7 +26,7 @@ class chip8 {
     };
 
     public:
-        chip8::chip8() {
+        chip8() {
             // initialize values
             pc = 0x200; // pc starts at mem address 0x200
             opcode = 0;
@@ -47,16 +49,13 @@ class chip8 {
                 stack[i] = 0;
                 key[i] = 0;
             }
-
-
         };
 
-        chip8::~chip8() {};
+        ~chip8() {};
         void emulate_cycle();
-        bool load(const char *rom);
+        bool load(const char *);
 
     private:
-        unsigned short opcode;
         unsigned char memory[0x1000];
         unsigned char V[16]; // 16 registers
         unsigned short I; // index register

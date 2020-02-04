@@ -32,6 +32,9 @@ class chip8 {
             opcode = 0;
             I = 0;
             sp = 0;
+            delay_timer = 0;
+            sound_timer = 0;
+            draw_flag = 0;
 
             // clear memory
             for (int i = 0; i < 0x1000; ++i) {
@@ -49,6 +52,11 @@ class chip8 {
                 stack[i] = 0;
                 key[i] = 0;
             }
+
+            // clear graphics
+            for (int i = 0; i < 2048; i++) {
+                gfx[i] = 0;
+            }
         };
 
         ~chip8() {};
@@ -64,7 +72,15 @@ class chip8 {
 
         unsigned short stack[16];
         unsigned short sp; // stack pointer
-        unsigned char key[16];
+        unsigned char key[16]; // key press
+
+        // graphics and timer registers
+        unsigned char gfx[64 * 32]; // 2048 px
+        unsigned char delay_timer;
+        unsigned char sound_timer;
+
+        // signal to update graphics
+        bool draw_flag;
 
 };
 

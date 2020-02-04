@@ -192,10 +192,20 @@ void chip8::emulate_cycle() {
         }
 
         case 0xD000:
+            break;
 
         default:
             printf ("Unknown opcode: 0x%X\n", opcode);
             exit(1);
             break;
+    }
+
+    // update timers
+    if(delay_timer > 0)
+    --delay_timer;
+
+    if(sound_timer > 0) {
+        if(sound_timer == 1) printf("BEEP!\n");
+    --sound_timer;
     }
 }

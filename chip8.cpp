@@ -192,7 +192,52 @@ void chip8::emulate_cycle() {
         }
 
         case 0xD000:
+        {
+            unsigned short x = V[(opcode & 0x0F00) >> 8];
+            unsigned short y = V[(opcode & 0x00F0) >> 4];
+            unsigned short height = opcode & 0x000F;
+            unsigned short pixel;
+
+            V[0xF] = 0;
+            for (int yline = 0; yline < height; yline++) {
+                pixel = memory[I + yline];
+                for(int xline = 0; xline < 8; xline++) {
+                    if((pixel & (0x80 >> xline)) != 0) {
+                        if(gfx[(x + xline + ((y + yline) * 64))] == 1) V[0xF] = 1;
+                        gfx[x + xline + ((y + yline) * 64)] ^= 1;
+                    }
+                }
+            }
+
+            draw_flag = true;
+            pc += 2;
             break;
+        }
+
+        // EXY_ key opcodes
+        case 0xE000:
+            switch (opcode & 0x000F) {
+                // EX9E - skips the next instruction if the key stored in VX is pressed. (Usually the next instruction is a jump to skip a code block)
+                case 0x000E:
+                    if (key[V[(opcode & 0x0F00) >> 8]]) {
+                        pc += 4;
+                    } else {
+                        pc += 2;
+                    }
+                    break;
+
+                // EXA1 - skips the next instruction if the key stored in VX isn't pressed
+                case 0x0001:
+                    if (key[V[(opcode & 0x0F00) >> 8]] == 0) {
+                        pc += 4;
+                    } else {
+                        pc += 2;
+                    }
+                    break;
+            }
+            break;
+
+        // FXY_ miscellaneous
 
         default:
             printf ("Unknown opcode: 0x%X\n", opcode);
@@ -201,8 +246,7 @@ void chip8::emulate_cycle() {
     }
 
     // update timers
-    if(delay_timer > 0)
-    --delay_timer;
+    if(delay_timer > 0) --delay_timer;
 
     if(sound_timer > 0) {
         if(sound_timer == 1) printf("BEEP!\n");

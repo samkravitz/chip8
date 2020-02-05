@@ -27,23 +27,31 @@ bool chip8::load(const char *filename) {
 void chip8::emulate_cycle() {
     // fetch opcode
     opcode = memory[pc] << 8 | memory[pc + 1];
-    printf ("Unknown opcode: 0x%X\n", opcode);
 
     // decode opcode
     switch (opcode & 0xF000) {
         // TODO: case 0s
         case 0x0000:
-            switch (opcode & 0x0FFF) {
+            switch (opcode & 0x000F) {
                 // 00E0 - clears the screen
-                case 0x00E0:
+                case 0x0000:
                     for (int i = 0; i < 2048; i++) {
                         gfx[i] = 0;
                     }
+                    draw_flag = true;
+                    pc += 2;
                     break;
 
                 // 00EE - returns from subroutine
-                case 0x00EE:
-                    pc = stack[sp--];
+                case 0x000E:
+                    --sp;
+                    pc = stack[sp];
+                    pc += 2;
+                    break;
+
+                default:
+                    printf ("Unknown opcode 0: 0x%X\n", opcode);
+                    exit(1);
                     break;
             }
             break;
@@ -62,7 +70,7 @@ void chip8::emulate_cycle() {
 
         // 3XNN - skips next instruction if VX = NN
         case 0x3000:
-            if (V[(opcode & 0x0F00) >> 8] == opcode & 0x00FF) {
+            if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)) {
                 pc += 4;
             } else {
                 pc += 2;
@@ -71,7 +79,7 @@ void chip8::emulate_cycle() {
 
         // 4XNN - skips next instruction if VX != NN
         case 0x4000:
-            if (V[(opcode & 0x0F00) >> 8] != opcode & 0x00FF) {
+            if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) {
                 pc += 4;
             } else {
                 pc += 2;
@@ -355,23 +363,7 @@ void chip8::emulate_cycle() {
     if(delay_timer > 0) --delay_timer;
 
     if(sound_timer > 0) {
-        if(sound_timer == 1) {printf("BEEP!\n"); exit(0);}
+        if(sound_timer == 1) {printf("BEEP!\n");}
     --sound_timer;
     }
-}
-
-void chip8::draw() {
-    for(int y = 0; y < 32; ++y)
-	{
-		for(int x = 0; x < 64; ++x)
-		{
-			if(gfx[(y*64) + x] == 0)
-				printf(" ");
-			else
-				printf("*");
-		}
-		printf("\n");
-	}
-	printf("\n");
-    //exit(1);
 }

@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <chrono>
+#include <thread>
 #include <SDL2/SDL.h>
 
 #include "chip8.h"
@@ -45,14 +47,13 @@ void close() {
 }
 
 void draw_screen(chip8 &c) {
-    unsigned char *gfx = c.get_gfx();
     c.draw_flag = false;
     SDL_Rect rect;
     rect.w = 8;
     rect.h = 8;
     for (int y = 0; y < 64; y++) {
         for (int x = 0; x < 32; x++) {
-            if (gfx[(y*64) + x]) { // bit is set
+            if (c.gfx[(y*64) + x]) { // bit is set
                 rect.x = x * 8;
                 rect.y = y * 8;
                 SDL_RenderFillRect(renderer, &rect);
@@ -74,7 +75,10 @@ int main(int argc, char **argv) {
         if (chip8.draw_flag) draw_screen(chip8);
         while (SDL_PollEvent(&e)) {
             if(e.type == SDL_QUIT) goto after_loop;
+            break;
         }
+
+        std::this_thread::sleep_for(std::chrono::microseconds(1200));
     }
 
     after_loop:

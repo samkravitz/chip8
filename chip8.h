@@ -64,12 +64,15 @@ class chip8 {
         // signal to update graphics
         bool draw_flag;
 
+        unsigned char key[16]; // key press
+
+        // graphics
+        unsigned char gfx[64 * 32]; // 2048 px
+
         void emulate_cycle();
         bool load(const char *);
         void draw();
-        unsigned char * get_gfx() {
-            return gfx;
-        }
+
 
     private:
         unsigned char memory[0x1000];
@@ -80,10 +83,8 @@ class chip8 {
 
         unsigned short stack[16];
         unsigned short sp; // stack pointer
-        unsigned char key[16]; // key press
 
-        // graphics and timer registers
-        unsigned char gfx[64 * 32]; // 2048 px
+        // timer registers
         unsigned char delay_timer;
         unsigned char sound_timer;
 };

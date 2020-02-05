@@ -3,43 +3,59 @@
 
 #include "chip8.h"
 
+bool init();
+void close();
+
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-int main(int argc, char **argv) {
+SDL_Window *gWindow = NULL;
+SDL_Surface *gScreenSurface = NULL;
+SDL_Surface *gHelloWorld = NULL;
 
-    chip8 chip8;
-
-    SDL_Window *window = NULL;
-    SDL_Surface *screenSurface = NULL;
-
+bool init() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("could not initialize\n");
         exit(2);
     }
 
-    window = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-    if( window == NULL ) {
-        printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+    gWindow = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+    if(gWindow == NULL) {
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        return false;
     }
 
-    screenSurface = SDL_GetWindowSurface( window );
+    gScreenSurface = SDL_GetWindowSurface(gWindow);
+
+    return true;
+}
+
+void close() {
+    SDL_FreeSurface(gHelloWorld);
+    gHelloWorld = NULL;
+
+    SDL_DestroyWindow(gWindow);
+    gWindow = NULL;
+
+    //Quit SDL subsystems
+    SDL_Quit();
+}
+
+int main(int argc, char **argv) {
+    init();
+
+    chip8 chip8;
 
     //Fill the surface white
-    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
+    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0xFF, 0xFF, 0xFF));
 
     //Update the surface
-    SDL_UpdateWindowSurface(window) ;
+    SDL_UpdateWindowSurface(gWindow) ;
 
     //Wait two seconds
     SDL_Delay(5000);
 
-    //Destroy window
-    SDL_DestroyWindow(window);
-
-    //Quit SDL subsystems
-    SDL_Quit();
-
+    close();
 
     //chip8.load(argv[1]);
 

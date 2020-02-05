@@ -50,8 +50,8 @@ void draw_screen(chip8 &c) {
     SDL_Rect rect;
     rect.w = 8;
     rect.h = 8;
-    for (int y = 0; y < 64; y++) {
-        for (int x = 0; x < 32; x++) {
+    for (int y = 0; y < 32; y++) {
+        for (int x = 0; x < 62; x++) {
             if (c.gfx[(y*64) + x]) { // bit is set
                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
                 rect.x = x * 8;

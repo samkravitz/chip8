@@ -29,7 +29,7 @@ bool init() {
 
     gScreenSurface = SDL_GetWindowSurface(gWindow);
     renderer = SDL_CreateRenderer(gWindow, -1, 0);
-
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     return true;
 }
 
@@ -48,20 +48,15 @@ void draw_screen(chip8 &c) {
     unsigned char *gfx = c.get_gfx();
     c.draw_flag = false;
     SDL_Rect rect;
+    rect.w = 8;
+    rect.h = 8;
     for (int y = 0; y < 64; y++) {
         for (int x = 0; x < 32; x++) {
-            SDL_Rect rect;
-            rect.x = x * 8;
-            rect.y = y * 8;
-            rect.w = 8;
-            rect.h = 8;
-
-
-            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-            if (gfx[(y*64) + x])
+            if (gfx[(y*64) + x]) { // bit is set
+                rect.x = x * 8;
+                rect.y = y * 8;
                 SDL_RenderFillRect(renderer, &rect);
-
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            }
         }
     }
     SDL_RenderPresent(renderer);
@@ -69,35 +64,20 @@ void draw_screen(chip8 &c) {
 
 int main(int argc, char **argv) {
     init();
-
     chip8 chip8;
-
     chip8.load(argv[1]);
-
     SDL_Event e;
 
-    // GUI loop
+    // Game loop
     for (;;) {
         chip8.emulate_cycle();
-
-
         if (chip8.draw_flag) draw_screen(chip8);
         while (SDL_PollEvent(&e)) {
             if(e.type == SDL_QUIT) goto after_loop;
-
         }
     }
 
     after_loop:
-
     close();
-
-    //chip8.load(argv[1]);
-
-    // while (1) {
-    //     chip8.emulate_cycle();
-    //     if (chip8.draw_flag) chip8.draw();
-    // }
-
     return 0;
 }

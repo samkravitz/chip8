@@ -27,10 +27,25 @@ bool chip8::load(const char *filename) {
 void chip8::emulate_cycle() {
     // fetch opcode
     opcode = memory[pc] << 8 | memory[pc + 1];
+    printf ("Unknown opcode: 0x%X\n", opcode);
+
     // decode opcode
     switch (opcode & 0xF000) {
         // TODO: case 0s
         case 0x0000:
+            switch (opcode & 0x0FFF) {
+                // 00E0 - clears the screen
+                case 0x00E0:
+                    for (int i = 0; i < 2048; i++) {
+                        gfx[i] = 0;
+                    }
+                    break;
+
+                // 00EE - returns from subroutine
+                case 0x00EE:
+                    pc = stack[sp--];
+                    break;
+            }
             break;
 
         // 1NNN - jumps to address NNN

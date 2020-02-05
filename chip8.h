@@ -60,8 +60,13 @@ class chip8 {
         };
 
         ~chip8() {};
+
+        // signal to update graphics
+        bool draw_flag;
+
         void emulate_cycle();
         bool load(const char *);
+        void draw();
 
     private:
         unsigned char memory[0x1000];
@@ -78,10 +83,6 @@ class chip8 {
         unsigned char gfx[64 * 32]; // 2048 px
         unsigned char delay_timer;
         unsigned char sound_timer;
-
-        // signal to update graphics
-        bool draw_flag;
-
 };
 
 #endif // CHIP8_H

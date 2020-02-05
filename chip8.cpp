@@ -27,7 +27,7 @@ bool chip8::load(const char *filename) {
 void chip8::emulate_cycle() {
     // fetch opcode
     opcode = memory[pc] << 8 | memory[pc + 1];
-
+    printf ("opcode: 0x%X\n", opcode);
     // decode opcode
     switch (opcode & 0xF000) {
         // TODO: case 0s
@@ -191,6 +191,7 @@ void chip8::emulate_cycle() {
             break;
         }
 
+        // DXYN - update graphics
         case 0xD000:
         {
             unsigned short x = V[(opcode & 0x0F00) >> 8];
@@ -234,10 +235,101 @@ void chip8::emulate_cycle() {
                         pc += 2;
                     }
                     break;
+
+                default:
+                    printf ("Unknown opcode: 0x%X\n", opcode);
+                    exit(1);
+                    break;
             }
             break;
 
         // FXY_ miscellaneous
+        case 0xF000:
+            switch (opcode & 0x00FF) {
+                // FX07 - sets VX to the value of the delay timer
+                case 0x0007:
+                    V[(opcode & 0x0F00) >> 8] = delay_timer;
+                    pc += 2;
+                    break;
+
+                // FX0A - a key press is awaited, and then stored in VX. (Blocking Operation. All instruction halted until next key event)
+                case 0x000A:
+                {
+                    bool key_pressed = 0;
+                    for (int i = 0; i < 16; ++i) {
+                        if (key[i]) {
+                            V[(opcode & 0x0F00) >> 8] = i;
+                            key_pressed = true;
+                        }
+                    }
+
+                    if (!key_pressed) return;
+
+                    pc += 2;
+                }
+                break;
+
+                // FX15 - sets the delay timer to VX
+                case 0x0015:
+                    delay_timer = V[(opcode & 0x0F00) >> 8];
+                    pc += 2;
+                    break;
+
+                // FX18 - sets the sound timer to VX
+                case 0x0018:
+                    sound_timer = V[(opcode & 0x0F00) >> 8];
+                    pc += 2;
+                    break;
+
+                // FX1E - Adds VX to I VF is set to 1 when there is a range overflow, and 0 when there isnt
+                case 0x001E:
+                    if (I + V[(opcode & 0x0F00) >> 8] > 0xFFF) {
+                        V[0xF] = 1;
+                    } else {
+                        V[0xF] = 0;
+                    }
+                    I += V[(opcode & 0x0F00) >> 8];
+                    pc += 2;
+                    break;
+
+                // FX29 - Sets I to the location of the sprite for the character in VX
+                case 0x0029:
+                    I = V[(opcode & 0x0F00) >> 8] * 0x5;
+                    pc += 2;
+                    break;
+
+                // FX33 - take the decimal representation of VX, place the hundreds digit in memory at location in I, the tens digit at location I+1, and the ones digit at location I+2
+                case 0x0033:
+					memory[I] = V[(opcode & 0x0F00) >> 8] / 100;
+					memory[I + 1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
+					memory[I + 2] = (V[(opcode & 0x0F00) >> 8] % 100) % 10;
+					pc += 2;
+				    break;
+
+                // FX55 - stores V0 to VX (including VX) in memory starting at address I. The offset from I is increased by 1 for each value written, but I itself is left unmodified
+                case 0x0055:
+                    for (int i = 0; i < 16; ++i) {
+                        memory[I + i] = V[i];
+                    }
+                    pc += 2;
+                    break;
+
+                // FX65 - fills V0 to VX (including VX) with values from memory starting at address I. The offset from I is increased by 1 for each value written, but I itself is left unmodified
+                case 0x0065:
+                    for (int i = 0; i < 16; ++i) {
+                         V[i] = memory[I + i];
+                    }
+                    pc += 2;
+                    break;
+
+                default:
+                    printf ("Unknown opcode: 0x%X\n", opcode);
+                    exit(1);
+                    break;
+
+
+            }
+            break;
 
         default:
             printf ("Unknown opcode: 0x%X\n", opcode);
@@ -249,7 +341,23 @@ void chip8::emulate_cycle() {
     if(delay_timer > 0) --delay_timer;
 
     if(sound_timer > 0) {
-        if(sound_timer == 1) printf("BEEP!\n");
+        if(sound_timer == 1) {printf("BEEP!\n"); exit(0);}
     --sound_timer;
     }
+}
+
+void chip8::draw() {
+    for(int y = 0; y < 32; ++y)
+	{
+		for(int x = 0; x < 64; ++x)
+		{
+			if(gfx[(y*64) + x] == 0)
+				printf(" ");
+			else
+				printf("*");
+		}
+		printf("\n");
+	}
+	printf("\n");
+    //exit(1);
 }

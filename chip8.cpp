@@ -27,7 +27,6 @@ bool chip8::load(const char *filename) {
 void chip8::emulate_cycle() {
     // fetch opcode
     opcode = memory[pc] << 8 | memory[pc + 1];
-    printf ("opcode: 0x%X\n", opcode);
     // decode opcode
     switch (opcode & 0xF000) {
         // TODO: case 0s

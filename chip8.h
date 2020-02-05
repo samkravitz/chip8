@@ -67,6 +67,9 @@ class chip8 {
         void emulate_cycle();
         bool load(const char *);
         void draw();
+        unsigned char * get_gfx() {
+            return gfx;
+        }
 
     private:
         unsigned char memory[0x1000];

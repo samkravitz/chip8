@@ -31,7 +31,6 @@ bool init() {
 
     gScreenSurface = SDL_GetWindowSurface(gWindow);
     renderer = SDL_CreateRenderer(gWindow, -1, 0);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     return true;
 }
 
@@ -54,6 +53,12 @@ void draw_screen(chip8 &c) {
     for (int y = 0; y < 64; y++) {
         for (int x = 0; x < 32; x++) {
             if (c.gfx[(y*64) + x]) { // bit is set
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                rect.x = x * 8;
+                rect.y = y * 8;
+                SDL_RenderFillRect(renderer, &rect);
+            } else {
+                SDL_SetRenderDrawColor(renderer, 0, 0,0,0);
                 rect.x = x * 8;
                 rect.y = y * 8;
                 SDL_RenderFillRect(renderer, &rect);
@@ -78,7 +83,7 @@ int main(int argc, char **argv) {
             break;
         }
 
-        std::this_thread::sleep_for(std::chrono::microseconds(1200));
+        std::this_thread::sleep_for(std::chrono::microseconds(1800));
     }
 
     after_loop:

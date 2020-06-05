@@ -1,3 +1,4 @@
 rom/
 chip8
 .vscode/
+*.py

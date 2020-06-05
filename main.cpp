@@ -16,8 +16,10 @@ const int SCREEN_HEIGHT = 256;
 
 SDL_Window *gWindow = NULL;
 SDL_Surface *gScreenSurface = NULL;
-SDL_Renderer *renderer;
+SDL_Renderer *renderer = NULL;
 SDL_Surface *gHelloWorld = NULL;
+
+unsigned char screen_buffer[64 * 32];
 
 // This emulator uses this mapping for keys
 // Keypad                   Keyboard
@@ -63,6 +65,11 @@ bool init() {
 
     gScreenSurface = SDL_GetWindowSurface(gWindow);
     renderer = SDL_CreateRenderer(gWindow, -1, 0);
+    
+    // paint the screen black
+    SDL_Rect rect{8, 8, SCREEN_WIDTH, SCREEN_HEIGHT};
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderPresent(renderer);
     return true;
 }
 
@@ -82,21 +89,27 @@ void draw_screen(chip8 &c) {
     SDL_Rect rect;
     rect.w = 8;
     rect.h = 8;
+    int index; // current pixel
     for (int y = 0; y < 32; y++) {
-        for (int x = 0; x < 62; x++) {
-            if (c.gfx[(y*64) + x]) { // bit is set
+        for (int x = 0; x < 64; x++) {
+            index = y * 64 + x;
+            if ((c.gfx[index] | screen_buffer[index]) == 1) { // bit is set
                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
                 rect.x = x * 8;
                 rect.y = y * 8;
                 SDL_RenderFillRect(renderer, &rect);
-            } else {
+            } else if ((c.gfx[index] | screen_buffer[index]) == 0) {
                 SDL_SetRenderDrawColor(renderer, 0, 0,0,0);
                 rect.x = x * 8;
                 rect.y = y * 8;
                 SDL_RenderFillRect(renderer, &rect);
             }
+
+            // update screen buffer with current pixel state
+            screen_buffer[index] = c.gfx[index];
         }
     }
+
     SDL_RenderPresent(renderer);
 }
 

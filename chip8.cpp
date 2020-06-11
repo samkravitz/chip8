@@ -3,8 +3,15 @@
 #include <assert.h>
 
 #include "chip8.h"
+#include "sdl.h"
 
-#define INSTRUCTION_LENGTH (2)
+#define INSTRUCTION_LENGTH 2
+
+// audio
+Beeper beeper;
+const double A = 440.0; // beeping frequency
+const int DURATION = 140;
+
 
 bool chip8::load(const char *filename) {
     FILE *rom = fopen(filename, "r");
@@ -363,7 +370,10 @@ void chip8::emulate_cycle() {
     if(delay_timer > 0) --delay_timer;
 
     if(sound_timer > 0) {
-        if(sound_timer == 1) {printf("BEEP!\n");}
+        if(sound_timer == 1) {
+            beeper.beep(A, DURATION);
+            beeper.wait();
+        }
     --sound_timer;
     }
 }

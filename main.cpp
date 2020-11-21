@@ -6,7 +6,7 @@
 #include "sdl.h"
 
 #define NUM_KEYS 16
-// This emulator uses this mapping for keys
+//  This emulator uses this mapping for keys
 // Keypad                   Keyboard
 // +-+-+-+-+                +-+-+-+-+
 // |1|2|3|C|                |1|2|3|4|

@@ -1,12 +1,14 @@
 #include "sdl.h"
 
+#include <cstdint>
+
 // video constants
-const int SCREEN_WIDTH = 512;
-const int SCREEN_HEIGHT = 256;
+constexpr int SCREEN_WIDTH = 512;
+constexpr int SCREEN_HEIGHT = 256;
 
 // sound constants
-const int AMPLITUDE = 28000;
-const int FREQUENCY = 44100;
+constexpr int AMPLITUDE = 28000;
+constexpr int FREQUENCY = 44100;
 
 // sdl globals
 SDL_Window *gWindow;
@@ -14,7 +16,7 @@ SDL_Surface *gScreenSurface;
 SDL_Renderer *renderer;
 SDL_Surface *gHelloWorld;
 
-unsigned char screen_buffer[64 * 32];
+uint8_t screen_buffer[64 * 32];
 
 bool init() {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {

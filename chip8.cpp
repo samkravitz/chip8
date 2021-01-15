@@ -1,9 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
+//#include <fstream>
+#include <iostream>
+#include <experimental/filesystem>
+#include <string.h>
 
 #include "chip8.h"
 #include "sdl.h"
+
+namespace fs = std::experimental::filesystem;
 
 #define INSTRUCTION_LENGTH 2
 
@@ -12,22 +15,51 @@ Beeper beeper;
 const double A = 440.0; // beeping frequency
 const int DURATION = 140;
 
+chip8::chip8() {
+  // initialize values
+  pc = 0x200; // pc starts at mem address 0x200
+  opcode = 0;
+  I = 0;
+  sp = 0;
+  delay_timer = 0;
+  sound_timer = 0;
+  draw_flag = 0;
 
-bool chip8::load(const char *filename) {
-    FILE *rom = fopen(filename, "r");
-    assert(rom);
-    // get size of file
-    fseek(rom, 0, SEEK_END);
+  // clear memory
+  for (int i = 0; i < 0x1000; ++i)
+      memory[i] = 0;
 
-    long size = ftell(rom);
-    rewind(rom);
+  // load fontset
+  for (int i = 0; i < 80; ++i)
+      memory[i] = chip8_fontset[i];
 
-    // load contents of rom into memory
-    for (int i = 0; i < size; ++i) {
-        fread(&memory[i + 0x200], sizeof(unsigned char), 1, rom);
+  // clear graphics
+  for (int i = 0; i < 2048; i++)
+      gfx[i] = 0;
+
+  // clear stack, registers, keys
+  for (int i = 0; i < 16; ++i) {
+      V[i] = 0;
+      stack[i] = 0;
+      key[i] = 0;
+  }
+
+}
+
+bool chip8::load(const std::string &filename) {
+    std::ifstream rom(filename, std::ios::in | std::ios::binary);
+
+    if (!rom || !rom.good())
+    {
+        std::cerr << "Error loading ROM: " << filename << std::endl;
+        exit(0);
     }
 
-    fclose(rom);
+    size_t rom_size = fs::file_size(filename);
+
+    rom.read((char *) &memory[0x200], rom_size);
+    rom.close();
+
     return true;
 }
 
@@ -329,11 +361,11 @@ void chip8::emulate_cycle() {
 
                 // FX33 - take the decimal representation of VX, place the hundreds digit in memory at location in I, the tens digit at location I+1, and the ones digit at location I+2
                 case 0x0033:
-					memory[I] = V[(opcode & 0x0F00) >> 8] / 100;
-					memory[I + 1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
-					memory[I + 2] = (V[(opcode & 0x0F00) >> 8] % 100) % 10;
-					pc += 2;
-				    break;
+        					memory[I] = V[(opcode & 0x0F00) >> 8] / 100;
+        					memory[I + 1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
+        					memory[I + 2] = (V[(opcode & 0x0F00) >> 8] % 100) % 10;
+        					pc += 2;
+        				    break;
 
                 // FX55 - stores V0 to VX (including VX) in memory starting at address I. The offset from I is increased by 1 for each value written, but I itself is left unmodified
                 case 0x0055:

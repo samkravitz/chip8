@@ -1,11 +1,14 @@
-#ifndef CHIP8_H
-#define CHIP8_H
+#pragma once
 
-#include <stdio.h>
+#include <iostream>
+#include <string>
+#include <cstdint>
+#include <fstream>
+
 
 class chip8 {
 
-    unsigned char chip8_fontset[80] =
+    uint8_t chip8_fontset[80] =
     {
       0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
       0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -26,67 +29,33 @@ class chip8 {
     };
 
     public:
-        chip8() {
-            // initialize values
-            pc = 0x200; // pc starts at mem address 0x200
-            opcode = 0;
-            I = 0;
-            sp = 0;
-            delay_timer = 0;
-            sound_timer = 0;
-            draw_flag = 0;
-
-            // clear memory
-            for (int i = 0; i < 0x1000; ++i) {
-                memory[i] = 0;
-            }
-
-            // load fontset
-            for (int i = 0; i < 80; ++i) {
-                memory[i] = chip8_fontset[i];
-            }
-
-            // clear stack, registers, key
-            for (int i = 0; i < 16; ++i) {
-                V[i] = 0;
-                stack[i] = 0;
-                key[i] = 0;
-            }
-
-            // clear graphics
-            for (int i = 0; i < 2048; i++) {
-                gfx[i] = 0;
-            }
-        };
-
-        ~chip8() {};
+        chip8();
+        ~chip8() { }
 
         // signal to update graphics
         bool draw_flag;
 
-        unsigned char key[16]; // key press
+        uint8_t key[16]; // key press
 
         // graphics
-        unsigned char gfx[64 * 32]; // 2048 px
+        uint8_t gfx[64 * 32]; // 2048 px
 
         void emulate_cycle();
-        bool load(const char *);
+        bool load(const std::string &);
         void draw();
 
 
     private:
-        unsigned char memory[0x1000];
-        unsigned char V[16]; // 16 registers
-        unsigned short I; // index register
-        unsigned short pc; // program counter
-        unsigned short opcode;
+        uint8_t  memory[0x1000];
+        uint8_t  V[16]; // 16 registers
+        uint16_t I;     // index register
+        uint16_t pc;    // program counter
+        uint16_t opcode;
 
-        unsigned short stack[16];
-        unsigned short sp; // stack pointer
+        uint16_t stack[16];
+        uint16_t sp;     // stack pointer
 
         // timer registers
-        unsigned char delay_timer;
-        unsigned char sound_timer;
+        uint8_t delay_timer;
+        uint8_t sound_timer;
 };
-
-#endif // CHIP8_H

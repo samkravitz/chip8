@@ -15,7 +15,8 @@ Beeper beeper;
 const double A = 440.0; // beeping frequency
 const int DURATION = 140;
 
-chip8::chip8() {
+chip8::chip8()
+{
   // initialize values
   pc = 0x200; // pc starts at mem address 0x200
   opcode = 0;
@@ -38,7 +39,8 @@ chip8::chip8() {
       gfx[i] = 0;
 
   // clear stack, registers, keys
-  for (int i = 0; i < 16; ++i) {
+  for (int i = 0; i < 16; ++i)
+  {
       V[i] = 0;
       stack[i] = 0;
       key[i] = 0;
@@ -46,7 +48,8 @@ chip8::chip8() {
 
 }
 
-bool chip8::load(const std::string &filename) {
+bool chip8::load(const std::string &filename)
+{
     std::ifstream rom(filename, std::ios::in | std::ios::binary);
 
     if (!rom || !rom.good())
@@ -63,28 +66,30 @@ bool chip8::load(const std::string &filename) {
     return true;
 }
 
-void chip8::emulate_cycle() {
+void chip8::emulate_cycle()
+{
     // fetch opcode
     opcode = memory[pc] << 8 | memory[pc + 1];
 
     // decode opcode
-    switch (opcode & 0xF000) {
+    switch (opcode & 0xF000)
+    {
         // TODO: case 0s
         case 0x0000:
-            switch (opcode & 0x000F) {
+            switch (opcode & 0x000F)
+            {
                 // 00E0 - clears the screen
                 case 0x0000:
-                    for (int i = 0; i < 2048; i++) {
+                    for (int i = 0; i < 2048; i++)
                         gfx[i] = 0;
-                    }
+
                     draw_flag = true;
                     pc += 2;
                     break;
 
                 // 00EE - returns from subroutine
                 case 0x000E:
-                    --sp;
-                    pc = stack[sp];
+                    pc = stack[--sp];
                     pc += 2;
                     break;
 
@@ -102,36 +107,35 @@ void chip8::emulate_cycle() {
 
         // 2NNN - calls subroutine at NNN
         case 0x2000:
-            stack[sp] = pc;
-            sp++;
+            stack[sp++] = pc;
             pc = opcode & 0x0FFF;
             break;
 
         // 3XNN - skips next instruction if VX = NN
         case 0x3000:
-            if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)) {
+            if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
                 pc += 4;
-            } else {
+            else
                 pc += 2;
-            }
+
             break;
 
         // 4XNN - skips next instruction if VX != NN
         case 0x4000:
-            if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) {
+            if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF))
                 pc += 4;
-            } else {
+            else
                 pc += 2;
-            }
+
             break;
 
         // 5XY0 - skips next instruction if VX = VY
         case 0x5000:
-            if (V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4]) {
+            if (V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4])
                 pc += 4;
-            } else {
+            else
                 pc += 2;
-            }
+
             break;
 
         // 6XNN - sets VX to NN
@@ -148,7 +152,8 @@ void chip8::emulate_cycle() {
 
         // 8XY_ - arithmetic
         case 0x8000:
-            switch (opcode & 0x000F) {
+            switch (opcode & 0x000F)
+            {
                 // 8XY0 - sets VX to the value of VY
                 case 0x0000:
                     V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
@@ -176,21 +181,21 @@ void chip8::emulate_cycle() {
                 // 8XY4 - adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't
                 case 0x0004:
                     V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
-                    if(V[(opcode & 0x00F0) >> 4] > (0xFF - V[(opcode & 0x0F00) >> 8])) {
+                    if(V[(opcode & 0x00F0) >> 4] > (0xFF - V[(opcode & 0x0F00) >> 8]))
                         V[0xF] = 1; // VY > 255 - VX, carry
-                    } else {
+                    else
                         V[0xF] = 0;
-                    }
+
                     pc += 2;
                     break;
 
                 // 8XY5 - subtracts VY from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
                 case 0x0005:
-                    if (V[(opcode & 0x00F0) >> 4] > V[(opcode & 0x0F00) >> 8]) {
+                    if (V[(opcode & 0x00F0) >> 4] > V[(opcode & 0x0F00) >> 8])
                         V[0xF] = 0; // VY > VX, (ie, VX - VY < 0), so theres a borrow
-                    } else {
+                    else
                         V[0xF] = 1; // no borrow
-                    }
+
                     V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
                     pc += 2;
                     break;
@@ -204,11 +209,11 @@ void chip8::emulate_cycle() {
 
                 // 8XY7 - sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't
                 case 0x0007:
-                    if (V[(opcode & 0x0F00) >> 8] > V[(opcode & 0x00F0) >> 4]) {
+                    if (V[(opcode & 0x0F00) >> 8] > V[(opcode & 0x00F0) >> 4])
                         V[0xF] = 0; // VX > VY, (ie, VY - VX < 0), so theres a borrow
-                    } else {
+                    else
                         V[0xF] = 1; // no borrow
-                    }
+
                     V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00) >> 8]; // VY - VX
                     pc += 2;
                     break;
@@ -261,11 +266,16 @@ void chip8::emulate_cycle() {
             unsigned short pixel;
 
             V[0xF] = 0;
-            for (int yline = 0; yline < height; yline++) {
+            for (int yline = 0; yline < height; yline++)
+            {
                 pixel = memory[I + yline];
-                for (int xline = 0; xline < 8; xline++) {
-                    if ((pixel & (0x80 >> xline)) != 0) {
-                        if (gfx[(x + xline + ((y + yline) * 64))] == 1) V[0xF] = 1;
+                for (int xline = 0; xline < 8; xline++)
+                {
+                    if ((pixel & (0x80 >> xline)) != 0)
+                    {
+                        if (gfx[(x + xline + ((y + yline) * 64))] == 1)
+                          V[0xF] = 1;
+
                         gfx[x + xline + ((y + yline) * 64)] ^= 1;
                     }
                 }
@@ -278,23 +288,23 @@ void chip8::emulate_cycle() {
 
         // EXY_ key opcodes
         case 0xE000:
-            switch (opcode & 0x000F) {
+            switch (opcode & 0x000F)
+            {
                 // EX9E - skips the next instruction if the key stored in VX is pressed. (Usually the next instruction is a jump to skip a code block)
                 case 0x000E:
-                    if (key[V[(opcode & 0x0F00) >> 8]]) {
+                    if (key[V[(opcode & 0x0F00) >> 8]])
                         pc += 4;
-                    } else {
+                    else
                         pc += 2;
-                    }
+
                     break;
 
                 // EXA1 - skips the next instruction if the key stored in VX isn't pressed
                 case 0x0001:
-                    if (key[V[(opcode & 0x0F00) >> 8]] == 0) {
+                    if (key[V[(opcode & 0x0F00) >> 8]] == 0)
                         pc += 4;
-                    } else {
+                    else
                         pc += 2;
-                    }
 
                     break;
 
@@ -307,7 +317,8 @@ void chip8::emulate_cycle() {
 
         // FXY_ miscellaneous
         case 0xF000:
-            switch (opcode & 0x00FF) {
+            switch (opcode & 0x00FF)
+            {
                 // FX07 - sets VX to the value of the delay timer
                 case 0x0007:
                     V[(opcode & 0x0F00) >> 8] = delay_timer;
@@ -319,14 +330,17 @@ void chip8::emulate_cycle() {
                 {
                     bool key_pressed = false;
 
-                    for (int i = 0; i < 16; ++i) {
-                        if (key[i]) {
+                    for (int i = 0; i < 16; ++i)
+                    {
+                        if (key[i])
+                        {
                             V[(opcode & 0x0F00) >> 8] = i;
                             key_pressed = true;
                         }
                     }
 
-                    if (!key_pressed) return;
+                    if (!key_pressed)
+                      return;
 
                     pc += 2;
                 }
@@ -346,11 +360,11 @@ void chip8::emulate_cycle() {
 
                 // FX1E - Adds VX to I VF is set to 1 when there is a range overflow, and 0 when there isnt
                 case 0x001E:
-                    if ((int) (I + V[(opcode & 0x0F00) >> 8]) > 0xFFF) {
+                    if ((int) (I + V[(opcode & 0x0F00) >> 8]) > 0xFFF)
                         V[0xF] = 1;
-                    } else {
+                    else
                         V[0xF] = 0;
-                    }
+
                     I += V[(opcode & 0x0F00) >> 8];
                     pc += 2;
                     break;
@@ -376,9 +390,9 @@ void chip8::emulate_cycle() {
                 case 0x0055:
                 {
                   int x = (opcode & 0x0F00) >> 8;
-                  for (int i = 0; i <= x; ++i) {
+                  for (int i = 0; i <= x; ++i)
                       memory[I + i] = V[i];
-                  }
+
                   pc += 2;
                 }
                     break;
@@ -387,9 +401,9 @@ void chip8::emulate_cycle() {
                 case 0x0065:
                 {
                   int x = (opcode & 0x0F00) >> 8;
-                  for (int i = 0; i <= x; ++i) {
+                  for (int i = 0; i <= x; ++i)
                        V[i] = memory[I + i];
-                  }
+
                   pc += 2;
                 }
                     break;
@@ -410,13 +424,17 @@ void chip8::emulate_cycle() {
     }
 
     // update timers
-    if(delay_timer > 0) --delay_timer;
+    if(delay_timer > 0)
+      --delay_timer;
 
-    if(sound_timer > 0) {
-        if(sound_timer == 1) {
+    if(sound_timer > 0)
+    {
+        if(sound_timer == 1)
+        {
             beeper.beep(A, DURATION);
             beeper.wait();
         }
+
     --sound_timer;
     }
 }

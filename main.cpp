@@ -17,7 +17,8 @@ constexpr int NUM_KEYS = 16;
 // +-+-+-+-+                +-+-+-+-+
 // |A|0|B|F|                |Z|X|C|V|
 // +-+-+-+-+                +-+-+-+-+
-constexpr uint8_t keymap[NUM_KEYS] = {
+constexpr uint8_t keymap[NUM_KEYS] =
+{
     SDLK_x,
     SDLK_1,
     SDLK_2,
@@ -36,7 +37,8 @@ constexpr uint8_t keymap[NUM_KEYS] = {
     SDLK_v,
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     init(); // sdl init
     chip8 chip8;
     chip8.load(argv[1]);
@@ -44,7 +46,8 @@ int main(int argc, char **argv) {
     SDL_Event e;
 
     // Game loop
-    for (;;) {
+    while (true)
+    {
         chip8.emulate_cycle();
         if (chip8.draw_flag)
           draw_screen(chip8);
@@ -56,8 +59,10 @@ int main(int argc, char **argv) {
           break;
 
         // check keyboard input
-        if (e.type == SDL_KEYDOWN) {
-            for (int i = 0; i < NUM_KEYS; ++i) {
+        if (e.type == SDL_KEYDOWN)
+        {
+            for (int i = 0; i < NUM_KEYS; ++i)
+            {
                 if (e.key.keysym.sym == keymap[i])
                     chip8.key[i] = 1;
             }
@@ -69,8 +74,10 @@ int main(int argc, char **argv) {
         }
 
         // reset keyboard input
-        if (e.type == SDL_KEYUP) {
-            for (int i = 0; i < NUM_KEYS; ++i) {
+        if (e.type == SDL_KEYUP)
+        {
+            for (int i = 0; i < NUM_KEYS; ++i)
+            {
                 if (e.key.keysym.sym == keymap[i])
                     chip8.key[i] = 0;
             }

@@ -9,12 +9,14 @@ bool init();
 void close();
 void draw_screen(chip8 &);
 
-struct BeepObject {
+struct BeepObject
+{
     double freq;
     int samplesLeft;
 };
 
-class Beeper {
+class Beeper
+{
   public:
       Beeper();
       ~Beeper();

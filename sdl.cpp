@@ -19,14 +19,17 @@ SDL_Rect     scale_rect;
 
 uint8_t screen_buffer[64 * 32];
 
-bool init() {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+bool init()
+{
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+    {
         printf("could not initialize\n");
         exit(2);
     }
 
     window = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH * 8, SCREEN_HEIGHT * 8, 0);
-    if (window == NULL) {
+    if (window == NULL)
+    {
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
@@ -47,7 +50,8 @@ bool init() {
     return true;
 }
 
-void close() {
+void close()
+{
     SDL_DestroyWindow(window);
     window = NULL;
 
@@ -55,7 +59,8 @@ void close() {
     SDL_Quit();
 }
 
-void draw_screen(chip8 &c) {
+void draw_screen(chip8 &c)
+{
     c.draw_flag = false;
 
     // copy pixel buffer over to surface pixels
@@ -83,13 +88,14 @@ void draw_screen(chip8 &c) {
 }
 
 // Beeper constructor
-Beeper::Beeper() {
+Beeper::Beeper()
+{
     SDL_AudioSpec desiredSpec;
 
-    desiredSpec.freq = FREQUENCY;
-    desiredSpec.format = AUDIO_S16SYS;
+    desiredSpec.freq     = FREQUENCY;
+    desiredSpec.format   = AUDIO_S16SYS;
     desiredSpec.channels = 1;
-    desiredSpec.samples = 2048;
+    desiredSpec.samples  = 2048;
     desiredSpec.callback = audio_callback;
     desiredSpec.userdata = this;
 
@@ -102,11 +108,13 @@ Beeper::Beeper() {
     SDL_PauseAudio(0);
 }
 
-Beeper::~Beeper() {
+Beeper::~Beeper()
+{
     SDL_CloseAudio();
 }
 
-void audio_callback(void *_beeper, Uint8 *_stream, int length) {
+void audio_callback(void *_beeper, Uint8 *_stream, int length)
+{
     Sint16 *stream = (Sint16*) _stream;
     length = length / 2;
     Beeper *beeper = (Beeper *) _beeper;
@@ -114,35 +122,41 @@ void audio_callback(void *_beeper, Uint8 *_stream, int length) {
     beeper->generateSamples(stream, length);
 }
 
-void Beeper::generateSamples(Sint16 *stream, int length) {
+void Beeper::generateSamples(Sint16 *stream, int length)
+{
     int i = 0;
-    while (i < length) {
-
-        if (beeps.empty()) {
-            while (i < length) {
+    while (i < length)
+    {
+        if (beeps.empty())
+        {
+            while (i < length)
+            {
                 stream[i] = 0;
                 i++;
             }
+
             return;
         }
-        BeepObject& bo = beeps.front();
+
+        BeepObject &bo = beeps.front();
 
         int samplesToDo = std::min(i + bo.samplesLeft, length);
         bo.samplesLeft -= samplesToDo - i;
 
-        while (i < samplesToDo) {
+        while (i < samplesToDo)
+        {
             stream[i] = AMPLITUDE * std::sin(v * 2 * M_PI / FREQUENCY);
             i++;
             v += bo.freq;
         }
 
-        if (bo.samplesLeft == 0) {
+        if (bo.samplesLeft == 0)
             beeps.pop();
-        }
     }
 }
 
-void Beeper::beep(double freq, int duration) {
+void Beeper::beep(double freq, int duration)
+{
     BeepObject bo;
     bo.freq = freq;
     bo.samplesLeft = duration * FREQUENCY / 1000;
@@ -152,13 +166,14 @@ void Beeper::beep(double freq, int duration) {
     SDL_UnlockAudio();
 }
 
-void Beeper::wait() {
+void Beeper::wait()
+{
     int size;
-    do {
+    do
+    {
         SDL_Delay(20);
         SDL_LockAudio();
         size = beeps.size();
         SDL_UnlockAudio();
     } while (size > 0);
-
 }

@@ -316,7 +316,8 @@ void chip8::emulate_cycle() {
                 // FX0A - a key press is awaited, and then stored in VX. (Blocking Operation. All instruction halted until next key event)
                 case 0x000A:
                 {
-                    bool key_pressed = 0;
+                    bool key_pressed = false;
+
                     for (int i = 0; i < 16; ++i) {
                         if (key[i]) {
                             V[(opcode & 0x0F00) >> 8] = i;
@@ -344,7 +345,7 @@ void chip8::emulate_cycle() {
 
                 // FX1E - Adds VX to I VF is set to 1 when there is a range overflow, and 0 when there isnt
                 case 0x001E:
-                    if (I + V[(opcode & 0x0F00) >> 8] > 0xFFF) {
+                    if ((int) (I + V[(opcode & 0x0F00) >> 8]) > 0xFFF) {
                         V[0xF] = 1;
                     } else {
                         V[0xF] = 0;
@@ -361,26 +362,35 @@ void chip8::emulate_cycle() {
 
                 // FX33 - take the decimal representation of VX, place the hundreds digit in memory at location in I, the tens digit at location I+1, and the ones digit at location I+2
                 case 0x0033:
-        					memory[I] = V[(opcode & 0x0F00) >> 8] / 100;
-        					memory[I + 1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
-        					memory[I + 2] = (V[(opcode & 0x0F00) >> 8] % 100) % 10;
+                {
+                  uint8_t value = V[(opcode & 0x0F00) >> 8];
+                  memory[I]     = value / 100;
+        					memory[I + 1] = (value / 10) % 10;
+        					memory[I + 2] = value % 10;
         					pc += 2;
+                }
         				    break;
 
                 // FX55 - stores V0 to VX (including VX) in memory starting at address I. The offset from I is increased by 1 for each value written, but I itself is left unmodified
                 case 0x0055:
-                    for (int i = 0; i < 16; ++i) {
-                        memory[I + i] = V[i];
-                    }
-                    pc += 2;
+                {
+                  int x = (opcode & 0x0F00) >> 8;
+                  for (int i = 0; i <= x; ++i) {
+                      memory[I + i] = V[i];
+                  }
+                  pc += 2;
+                }
                     break;
 
                 // FX65 - fills V0 to VX (including VX) with values from memory starting at address I. The offset from I is increased by 1 for each value written, but I itself is left unmodified
                 case 0x0065:
-                    for (int i = 0; i < 16; ++i) {
-                         V[i] = memory[I + i];
-                    }
-                    pc += 2;
+                {
+                  int x = (opcode & 0x0F00) >> 8;
+                  for (int i = 0; i <= x; ++i) {
+                       V[i] = memory[I + i];
+                  }
+                  pc += 2;
+                }
                     break;
 
                 default:

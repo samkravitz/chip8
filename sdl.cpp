@@ -1,20 +1,21 @@
 #include "sdl.h"
 
 #include <cstdint>
+#include <string>
 
 // video constants
-constexpr int SCREEN_WIDTH = 512;
-constexpr int SCREEN_HEIGHT = 256;
+constexpr int SCREEN_WIDTH  = 64;
+constexpr int SCREEN_HEIGHT = 32;
 
 // sound constants
 constexpr int AMPLITUDE = 28000;
 constexpr int FREQUENCY = 44100;
 
 // sdl globals
-SDL_Window *gWindow;
-SDL_Surface *gScreenSurface;
-SDL_Renderer *renderer;
-SDL_Surface *gHelloWorld;
+SDL_Window  *window;
+SDL_Surface *final_screen;
+SDL_Surface *original_screen;
+SDL_Rect     scale_rect;
 
 uint8_t screen_buffer[64 * 32];
 
@@ -24,28 +25,31 @@ bool init() {
         exit(2);
     }
 
-    gWindow = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
-    if(gWindow == NULL) {
+    window = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH * 8, SCREEN_HEIGHT * 8, 0);
+    if (window == NULL) {
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
 
-    gScreenSurface = SDL_GetWindowSurface(gWindow);
-    renderer = SDL_CreateRenderer(gWindow, -1, 0);
+    final_screen = SDL_GetWindowSurface(window);
+    original_screen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, 0, 0, 0);
 
-    // paint the screen black
-    SDL_Rect rect{8, 8, SCREEN_WIDTH, SCREEN_HEIGHT};
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderPresent(renderer);
+    // set parameters for scaling rectangle
+    scale_rect.w = SCREEN_WIDTH  * 8;
+    scale_rect.h = SCREEN_HEIGHT * 8;
+    scale_rect.x = 0;
+    scale_rect.y = 0;
+
+    // zero screen screen buffer
+    for (int i = 0; i < 64 * 32; ++i)
+      screen_buffer[i] = 0;
+
     return true;
 }
 
 void close() {
-    SDL_FreeSurface(gHelloWorld);
-    gHelloWorld = NULL;
-
-    SDL_DestroyWindow(gWindow);
-    gWindow = NULL;
+    SDL_DestroyWindow(window);
+    window = NULL;
 
     //Quit SDL subsystems
     SDL_Quit();
@@ -53,31 +57,54 @@ void close() {
 
 void draw_screen(chip8 &c) {
     c.draw_flag = false;
-    SDL_Rect rect;
-    rect.w = 8;
-    rect.h = 8;
-    int index; // current pixel
-    for (int y = 0; y < 32; y++) {
-        for (int x = 0; x < 64; x++) {
-            index = y * 64 + x;
-            if ((c.gfx[index] | screen_buffer[index]) == 1) { // bit is set
-                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                rect.x = x * 8;
-                rect.y = y * 8;
-                SDL_RenderFillRect(renderer, &rect);
-            } else if ((c.gfx[index] | screen_buffer[index]) == 0) {
-                SDL_SetRenderDrawColor(renderer, 0, 0,0,0);
-                rect.x = x * 8;
-                rect.y = y * 8;
-                SDL_RenderFillRect(renderer, &rect);
-            }
+    // SDL_Rect rect;
+    // rect.w = 8;
+    // rect.h = 8;
+    // int index; // current pixel
+    // for (int y = 0; y < 32; y++) {
+    //     for (int x = 0; x < 64; x++) {
+    //         index = y * 64 + x;
+    //         if ((c.gfx[index] | screen_buffer[index]) == 1) { // bit is set
+    //             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    //             rect.x = x * 8;
+    //             rect.y = y * 8;
+    //             SDL_RenderFillRect(renderer, &rect);
+    //         } else if ((c.gfx[index] | screen_buffer[index]) == 0) {
+    //             SDL_SetRenderDrawColor(renderer, 0, 0,0,0);
+    //             rect.x = x * 8;
+    //             rect.y = y * 8;
+    //             SDL_RenderFillRect(renderer, &rect);
+    //         }
+    //
+    //         // update screen buffer with current pixel state
+    //         screen_buffer[index] = c.gfx[index];
+    //     }
+    // }
 
-            // update screen buffer with current pixel state
-            screen_buffer[index] = c.gfx[index];
-        }
+    //SDL_RenderPresent(renderer);
+
+    // copy pixel buffer over to surface pixels
+    if (SDL_MUSTLOCK(final_screen))
+        SDL_LockSurface(final_screen);
+
+    uint32_t *screen_pixels = (uint32_t *) original_screen->pixels;
+
+    for (int i = 0; i < 64 * 32; ++i)
+    {
+      if (c.gfx[i]) // white
+        screen_pixels[i] = 0xFFFFFFFF;
+      else                  // black
+        screen_pixels[i] = 0x0;
     }
 
-    SDL_RenderPresent(renderer);
+    if (SDL_MUSTLOCK(final_screen))
+        SDL_UnlockSurface(final_screen);
+
+    // scale screen buffer
+    SDL_BlitScaled(original_screen, NULL, final_screen, &scale_rect);
+
+    // draw final_screen pixels on screen
+    SDL_UpdateWindowSurface(window);
 }
 
 // Beeper constructor

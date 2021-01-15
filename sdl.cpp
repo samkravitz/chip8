@@ -57,31 +57,6 @@ void close() {
 
 void draw_screen(chip8 &c) {
     c.draw_flag = false;
-    // SDL_Rect rect;
-    // rect.w = 8;
-    // rect.h = 8;
-    // int index; // current pixel
-    // for (int y = 0; y < 32; y++) {
-    //     for (int x = 0; x < 64; x++) {
-    //         index = y * 64 + x;
-    //         if ((c.gfx[index] | screen_buffer[index]) == 1) { // bit is set
-    //             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    //             rect.x = x * 8;
-    //             rect.y = y * 8;
-    //             SDL_RenderFillRect(renderer, &rect);
-    //         } else if ((c.gfx[index] | screen_buffer[index]) == 0) {
-    //             SDL_SetRenderDrawColor(renderer, 0, 0,0,0);
-    //             rect.x = x * 8;
-    //             rect.y = y * 8;
-    //             SDL_RenderFillRect(renderer, &rect);
-    //         }
-    //
-    //         // update screen buffer with current pixel state
-    //         screen_buffer[index] = c.gfx[index];
-    //     }
-    // }
-
-    //SDL_RenderPresent(renderer);
 
     // copy pixel buffer over to surface pixels
     if (SDL_MUSTLOCK(final_screen))

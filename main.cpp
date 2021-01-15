@@ -18,21 +18,21 @@ constexpr int NUM_KEYS = 16;
 // |A|0|B|F|                |Z|X|C|V|
 // +-+-+-+-+                +-+-+-+-+
 constexpr uint8_t keymap[NUM_KEYS] = {
+    SDLK_x,
     SDLK_1,
     SDLK_2,
     SDLK_3,
-    SDLK_4,
     SDLK_q,
     SDLK_w,
     SDLK_e,
-    SDLK_r,
     SDLK_a,
     SDLK_s,
     SDLK_d,
-    SDLK_f,
     SDLK_z,
-    SDLK_x,
     SDLK_c,
+    SDLK_4,
+    SDLK_r,
+    SDLK_f,
     SDLK_v,
 };
 
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
             }
 
             // quit
-            if (e.key.keysym.sym == SDLK_q)
+            if (e.key.keysym.sym == SDLK_ESCAPE)
                 break;
 
         }

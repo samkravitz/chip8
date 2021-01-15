@@ -295,6 +295,7 @@ void chip8::emulate_cycle() {
                     } else {
                         pc += 2;
                     }
+
                     break;
 
                 default:

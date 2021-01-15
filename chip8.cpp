@@ -151,7 +151,7 @@ void chip8::emulate_cycle() {
             switch (opcode & 0x000F) {
                 // 8XY0 - sets VX to the value of VY
                 case 0x0000:
-                    V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4];
+                    V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
                     pc += 2;
                     break;
 
@@ -240,7 +240,7 @@ void chip8::emulate_cycle() {
 
         // BNNN  - jumps to the address NNN plus V0
         case 0xB000:
-            pc += (opcode & 0x0FFF) + V[0x0];
+            pc = (opcode & 0x0FFF) + V[0x0];
             break;
 
         // CXNN - sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN.

@@ -72,9 +72,9 @@ void draw_screen(chip8 &c)
     for (int i = 0; i < 64 * 32; ++i)
     {
       if (c.gfx[i]) // white
-        screen_pixels[i] = 0xFFFFFFFF;
+        screen_pixels[i] = 0xD8DEE9;
       else                  // black
-        screen_pixels[i] = 0x0;
+        screen_pixels[i] = 0x4C566A;
     }
 
     if (SDL_MUSTLOCK(final_screen))
